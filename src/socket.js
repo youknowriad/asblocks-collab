@@ -1,10 +1,12 @@
 const socketIO = require("socket.io");
 const debug = require("debug");
-
+const { signIn, db } = require("./firebase");
 const ioDebug = debug("io");
 const socketDebug = debug("socket");
 
 function setupSocketServer(server) {
+  const roomKeys = {};
+
   const io = socketIO(server, {
     handlePreflightRequest: function (req, res) {
       var headers = {
@@ -20,11 +22,14 @@ function setupSocketServer(server) {
   io.on("connection", (socket) => {
     ioDebug("connection established!");
     io.to(`${socket.id}`).emit("init-room");
-    socket.on("join-room", (roomID) => {
+    socket.on("join-room", async (roomID) => {
       socketDebug(`${socket.id} has joined ${roomID}`);
       socket.join(roomID);
       if (io.sockets.adapter.rooms[roomID].length <= 1) {
         io.to(`${socket.id}`).emit("first-in-room");
+        await signIn();
+        const snapshot = await db.collection("posts").doc(roomID).get();
+        roomKeys[roomID] = snapshot.data().ownerKey;
       } else {
         socket.broadcast.to(roomID).emit("new-user", socket.id);
       }
@@ -34,16 +39,22 @@ function setupSocketServer(server) {
       );
     });
 
-    socket.on("server-broadcast", (roomID, encryptedData) => {
+    socket.on("server-broadcast", async (roomID, data) => {
       socketDebug(`${socket.id} sends update to ${roomID}`);
-      socket.broadcast.to(roomID).emit("client-broadcast", encryptedData);
+      if (roomKeys[roomID] !== data.ownerKey) {
+        return;
+      }
+      socket.broadcast.to(roomID).emit("client-broadcast", data.action);
     });
 
-    socket.on("server-volatile-broadcast", (roomID, encryptedData) => {
+    socket.on("server-volatile-broadcast", async (roomID, data) => {
       socketDebug(`${socket.id} sends volatile update to ${roomID}`);
+      if (roomKeys[roomID] !== data.ownerKey) {
+        return;
+      }
       socket.volatile.broadcast
         .to(roomID)
-        .emit("client-broadcast", encryptedData);
+        .emit("client-broadcast", data.action);
     });
 
     socket.on("disconnecting", () => {
@@ -54,6 +65,8 @@ function setupSocketServer(server) {
         );
         if (clients.length > 0) {
           socket.broadcast.to(roomID).emit("room-user-change", clients);
+        } else {
+          roomKeys[roomID] = undefined;
         }
       }
     });

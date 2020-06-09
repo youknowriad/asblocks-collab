@@ -1,38 +1,24 @@
 const debug = require("debug");
-const firebase = require("firebase");
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const { v4: uuid } = require("uuid");
-const config = require("./config");
-
-const firebaseApp = firebase.initializeApp(config.firebase);
-const db = firebaseApp.firestore();
-
+const bodyParser = require("body-parser");
+const cors = require("cors");
 const apiDebug = debug("api");
-
-async function signIn() {
-    if ( !!firebase.auth().currentUser) {
-        return;
-    }
-    await firebase.auth().signInWithEmailAndPassword(config.user.email, config.user.password);
-}
+const { signIn, db } = require("./firebase");
 
 function setupApiServer(app) {
   app.use(bodyParser.json());
   app.use(cors());
-  app.post("/api/share", async (req, res) => {
+
+  app.post("/api/share/:ownerKey", async (req, res) => {
     apiDebug("share a new post");
     await signIn();
-    const ownerKey = uuid();
     const doc = await db.collection("posts").add({
       status: "publish",
-      ownerKey,
+      ownerKey: req.params.ownerKey,
     });
 
     res.send({
       _id: doc.id,
       status: "publish",
-      ownerKey,
     });
   });
 
@@ -52,10 +38,15 @@ function setupApiServer(app) {
       "save Id " + req.params.id + "with permission key " + req.params.ownerKey
     );
     await signIn();
+    const snapshot = await db.collection("posts").doc(req.params.id).get();
+    if (snapshot.data().ownerKey !== req.params.ownerKey) {
+      return res.status(401).send({ message: "Incorrect permissions" });
+    }
     const { encrypted } = req.body;
     await db.collection("posts").doc(req.params.id).set({
       encrypted,
       status: "publish",
+      ownerKey: req.params.ownerKey,
     });
     return res.send({
       _id: req.params.id,
