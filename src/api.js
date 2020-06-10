@@ -54,14 +54,11 @@ function setupApiServer( app ) {
 				.send( { message: 'Incorrect permissions' } );
 		}
 		const { encrypted } = req.body;
-		await db
-			.collection( 'posts' )
-			.doc( req.params.id )
-			.set( {
-				encrypted,
-				status: 'publish',
-				ownerKey: req.params.ownerKey,
-			} );
+		await db.collection( 'posts' ).doc( req.params.id ).set( {
+			encrypted,
+			status: 'publish',
+			ownerKey: req.params.ownerKey,
+		} );
 		return res.send( {
 			_id: req.params.id,
 			encrypted,

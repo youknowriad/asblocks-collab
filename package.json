@@ -28,6 +28,7 @@
 		"socket.io": "2.3.0"
 	},
 	"devDependencies": {
-		"@wordpress/scripts": "^10.0.0"
+		"@wordpress/scripts": "^10.0.0",
+		"prettier": "npm:wp-prettier@2.0.5"
 	}
 }
