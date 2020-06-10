@@ -1,13 +1,24 @@
 {
 	"name": "asblocks-collab",
 	"version": "1.0.0",
-	"description": "AsBlocks collaboration server",
+	"private": true,
+	"description": "Write content as blocks.",
+	"author": "Riad Benguella",
+	"license": "GPL-3.0-or-later",
+	"keywords": [
+	  "Gutenberg",
+	  "editor"
+	],
+	"homepage": "https://asblocks.com",
+	"repository": "git+https://github.com/youknowriad/asblocks.git",
+	"bugs": {
+	  "url": "https://github.com/youknowriad/asblocks/issues"
+	},
 	"main": "src/index.js",
 	"scripts": {
 		"lint": "wp-scripts lint-js",
 		"start": "node src/index.js"
 	},
-	"license": "MIT",
 	"dependencies": {
 		"body-parser": "^1.19.0",
 		"cors": "^2.8.5",
