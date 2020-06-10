@@ -6,13 +6,13 @@
 	"author": "Riad Benguella",
 	"license": "GPL-3.0-or-later",
 	"keywords": [
-	  "Gutenberg",
-	  "editor"
+		"Gutenberg",
+		"editor"
 	],
 	"homepage": "https://asblocks.com",
 	"repository": "git+https://github.com/youknowriad/asblocks.git",
 	"bugs": {
-	  "url": "https://github.com/youknowriad/asblocks/issues"
+		"url": "https://github.com/youknowriad/asblocks/issues"
 	},
 	"main": "src/index.js",
 	"scripts": {
