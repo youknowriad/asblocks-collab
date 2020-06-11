@@ -51,7 +51,7 @@ function setupSocketServer( server ) {
 			}
 			socket.broadcast
 				.to( roomID )
-				.emit( 'client-broadcast', data.action );
+				.emit( 'client-broadcast', data.action, socket.id );
 		} );
 
 		socket.on( 'server-volatile-broadcast', async ( roomID, data ) => {
@@ -63,7 +63,7 @@ function setupSocketServer( server ) {
 			}
 			socket.volatile.broadcast
 				.to( roomID )
-				.emit( 'client-broadcast', data.action );
+				.emit( 'client-broadcast', data.action, socket.id );
 		} );
 
 		socket.on( 'disconnecting', () => {
