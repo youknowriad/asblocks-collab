@@ -36,6 +36,7 @@ function setupSocketServer( server ) {
 					.get();
 				roomKeys[ roomID ] = snapshot.data().ownerKey;
 			} else {
+				io.to( `${ socket.id }` ).emit( 'welcome-in-room' );
 				socket.broadcast.to( roomID ).emit( 'new-user', socket.id );
 			}
 			io.in( roomID ).emit(
