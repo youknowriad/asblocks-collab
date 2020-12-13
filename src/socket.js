@@ -6,6 +6,7 @@ const socketDebug = debug( 'socket' );
 
 function setupSocketServer( server ) {
 	const roomKeys = {};
+	const roomMasters = {};
 
 	const io = socketIO( server, {
 		handlePreflightRequest( req, res ) {
@@ -28,6 +29,7 @@ function setupSocketServer( server ) {
 			socketDebug( `${ socket.id } has joined ${ roomID }` );
 			socket.join( roomID );
 			if ( io.sockets.adapter.rooms[ roomID ].length <= 1 ) {
+				roomMasters[ roomID ] = socket.id;
 				io.to( `${ socket.id }` ).emit( 'first-in-room' );
 				await signIn();
 				const snapshot = await db
@@ -73,6 +75,13 @@ function setupSocketServer( server ) {
 				const clients = Object.keys( rooms[ roomID ].sockets ).filter(
 					( id ) => id !== socket.id
 				);
+				if (
+					clients.length > 0 &&
+					socket.id === roomMasters[ roomID ]
+				) {
+					roomMasters[ roomID ] = clients[ 0 ];
+					io.to( `${ clients[ 0 ] }` ).emit( 'first-in-room' );
+				}
 				if ( clients.length > 0 ) {
 					socket.broadcast
 						.to( roomID )
